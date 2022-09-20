@@ -138,11 +138,11 @@ function cmdHanders(cmd, params) {
                     case "禁用":
                         if (!cmd__)
                             return `没带参数?`;
-                        return plugin_1.PluginInterface.disableplugin(cmd__);
+                        return plugin_1.PluginInterface.disableplugin(this, cmd__);
                     case "remove":
                         if (!cmd__)
                             return `没带参数?`;
-                        return plugin_1.PluginInterface.disableplugin(cmd__);
+                        return plugin_1.PluginInterface.disableplugin(this, cmd__);
                     default:
                         return `你没带参数? 如: cmd cmd_ data`;
                 }
@@ -152,10 +152,10 @@ function cmdHanders(cmd, params) {
             msg += `$${cmd}\n`;
             return msg;
         }
-        if (cmd === "重载" || cmd === "reload") {
+        if (cmd === "重载" || cmd === "r->" || cmd === "reload") {
             if (!cmd_)
                 return `#${cmd} 插件名`;
-            return reload(cmd_, this);
+            return plugin_1.PluginInterface.reload.call(this, cmd_);
         }
         return 0;
     }

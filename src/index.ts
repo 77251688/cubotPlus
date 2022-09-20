@@ -1,7 +1,7 @@
 import {Client, OnlineStatus, segment} from "@cummins/oicq";
 import {client} from "./bot";
 import {Admin, system} from "./utils";
-import {PluginInterface} from "./plugin";
+import {Plugin, PluginInterface} from "./plugin";
 
 /**
  * 🤔😅🥰🥵🤨✅❌🥥🍇🍈🍋🍍🍪🍮🍹
@@ -145,12 +145,12 @@ function cmdHanders(this: Client, cmd: string, params: string) {
 				case "禁用":
 					if (!cmd__)
 						return `没带参数?`;
-					return PluginInterface.disableplugin(cmd__);
+					return PluginInterface.disableplugin(this, cmd__);
 
 				case "remove":
 					if (!cmd__)
 						return `没带参数?`;
-					return PluginInterface.disableplugin(cmd__);
+					return PluginInterface.disableplugin(this, cmd__);
 				default:
 					return `你没带参数? 如: cmd cmd_ data`;
 				}
@@ -160,10 +160,10 @@ function cmdHanders(this: Client, cmd: string, params: string) {
 			msg += `$${cmd}\n`;
 			return msg;
 		}
-		if (cmd === "重载" || cmd === "reload") {
+		if (cmd === "重载" || cmd === "r->" || cmd === "reload") {
 			if (!cmd_)
 				return `#${cmd} 插件名`;
-			return reload(cmd_, this);
+			return PluginInterface.reload.call(this, cmd_);
 		}
 		return 0;
 	} catch (e: any) {

@@ -120,7 +120,7 @@ export class Plugin {
 
 	// private static bot: Client;
 
-	public static disable(targetPlugin: string): string {
+	public static disable(bot: Client, targetPlugin: string): string {
 		if (!this.EnabledPluginSet.has(targetPlugin)) throw new PluginError("ERR: 没有启用这个插件");
 		const Plugincache = this.EnabledPluginMap.get(targetPlugin)!;
 		require(Plugincache.path);
@@ -132,6 +132,7 @@ export class Plugin {
 		this.handlerSet(targetPlugin, "delete");
 		this.config.plugins = Array.from(this.EnabledPluginSet);
 		file.writeFile(join(process.cwd(), "../config.json"), this.config);
+		bot.logger.warn(`已卸载${plugin.getname}`);
 		return `已卸载`;
 
 	}
@@ -260,8 +261,18 @@ export class PluginInterface {
 		}
 	}
 
-	public static disableplugin(targetplugin: string) {
-		return Plugin.disable(targetplugin);
+	public static reload(this: Client, targetplugin: string): string | void {
+		Plugin.disable(this, targetplugin);
+		try {
+			Plugin.scanPluginFile(this, targetplugin);
+		} catch (err) {
+			return err.message;
+		}
+		return;
+	}
+
+	public static disableplugin(bot: Client, targetplugin: string) {
+		return Plugin.disable(bot, targetplugin);
 	}
 
 	public scan<F extends (...args: Array<any>) => any, F1 extends (...args: Array<any>) => any, T>(fun: F, fun1: F1, ...args: Array<T>) {
