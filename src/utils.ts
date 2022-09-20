@@ -4,17 +4,17 @@ import * as os from "os";
 import {config} from "./config";
 
 export class Admin {
-	static get getmaster() {
+	public static get getmaster() {
 		const {admins} = config.returnconfig();
 		return admins[0];
 	}
 
-	static get getadmins() {
+	public static get getadmins() {
 		const {admins} = config.returnconfig();
 		return admins;
 	}
 
-	static setAdmin(uid: number) {
+	public static setAdmin(uid: number) {
 		try {
 			const config_ = config.returnconfig();
 			if (this.getadmins().includes(uid)) {
@@ -32,7 +32,7 @@ export class Admin {
 		}
 	}
 
-	static removeAdmin(uid: number) {
+	public static removeAdmin(uid: number) {
 		try {
 			const config_ = config.returnconfig();
 			const {admins} = config_;
@@ -55,7 +55,7 @@ export class Admin {
 
 export class system {
 	/** cpu */
-	static get cpu() {
+	public static get cpu() {
 		const cpus = os.cpus();
 		/** arch */
 		const arch = os.arch();
@@ -67,29 +67,39 @@ export class system {
 	}
 
 	/** memory */
-	static get memory() {
+	public static get memory() {
 		/** All mem */
 		const memory_ = os.totalmem();
 		const memory__ = memory_ / 1024 / 1024 / 1024;
-		const memory = slice_(memory__);
+		const memory = memory__.toFixed(3);
 		/** Free mem */
 		const freemem_ = os.freemem();
 		const _freemem = freemem_ / 1024 / 1024 / 1024;
 		const freemem__ = _freemem > 1 ? _freemem : _freemem * 1024;
-		const freemem = slice_(freemem__);
+		const freemem = freemem__.toFixed(3);
 		/** Uesd mem */
 		const usedmem_ = (memory_ - freemem_) / 1024 / 1024 / 1024;
 		const usedmem__ = usedmem_ > 1 ? usedmem_ : usedmem_ * 1024;
-		const usedmem = slice_(usedmem__);
+		const usedmem = usedmem__.toFixed(3);
 		/** percent */
 		const usepercent__ = usedmem__ / memory__ * 100;
-		const usepercent = slice_(usepercent__);
+		const usepercent = usepercent__.toFixed(3);
 		console.log({memory, freemem, usedmem, usepercent});
 		return {memory, freemem, usedmem, usepercent};
 	}
 
+	public static get processmemory() {
+		const {rss, heapTotal, heapUsed, external, arrayBuffers} = process.memoryUsage();
+		const rss_ = (rss / 1024 / 1024).toFixed(3);
+		const heapTotal_ = (heapTotal / 1024 / 1024).toFixed(3);
+		const heapUsed_ = (heapUsed / 1024 / 1024).toFixed(3);
+		const external_ = (external / 1024 / 1024).toFixed(3);
+		const arrayBuffers_ = (arrayBuffers / 1024 / 1024).toFixed(3);
+		return {rss_, heapTotal_, heapUsed_, external_, arrayBuffers_};
+	}
+
 	/** OS */
-	static get OStype() {
+	public static get OStype() {
 		const sys = os.type();
 		switch (sys) {
 		case `Windows_NT`:
@@ -102,13 +112,6 @@ export class system {
 	}
 }
 
-const slice_ = (e: number) => {
-	const str = e.toString();
-	const index_ = str.indexOf(".") + 3;
-	const result = str.slice(0, index_);
-	return result;
-};
-
 /**
  * File类
  */
@@ -117,7 +120,7 @@ export class file {
 	 * 读取json文件, 返回格式化后的json
 	 * @param file
 	 */
-	static returnFile<T>(file: string): T {
+	public static returnFile<T>(file: string): T {
 		const f = fs.readFileSync(file, "utf-8");
 		return JSON.parse(f);
 	}
@@ -127,7 +130,7 @@ export class file {
 	 * @param file
 	 * @param data
 	 */
-	static writeFile(file: string, data: object) {
+	public static writeFile(file: string, data: object) {
 		const data_ = JSON.stringify(data, null, "\t");
 		fs.writeFileSync(file, data_);
 	}
@@ -136,7 +139,7 @@ export class file {
 	 * 封装读取目录
 	 * @param path
 	 */
-	static readdir(path: string) {
+	public static readdir(path: string) {
 		try {
 			return readdirSync(path);
 		} catch (err) {
@@ -149,11 +152,9 @@ export class file {
 /** random */
 export class random {
 	/** 随机整数包含两个数 */
-	static intrandom(min: number, max: number) {
+	public static intrandom(min: number, max: number) {
 		min = Math.ceil(min);
 		max = Math.floor(max);
 		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 }
-
-/** timestamp */

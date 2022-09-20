@@ -44,14 +44,14 @@ class PluginINSTANCE {
                 this.fun = (e) => {
                     if (e.user_id === this.permission || this.permission?.includes(e.user_id))
                         if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(this.cmd)) {
-                            fun(e);
+                            fun.call(this.bot, e);
                         }
                 };
                 return this;
             }
             this.fun = (e) => {
                 if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(this.cmd)) {
-                    fun(e);
+                    fun.call(this.bot, e);
                 }
             };
             return this;

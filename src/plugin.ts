@@ -3,7 +3,6 @@ import {readdirSync, statSync} from "fs";
 import {join} from "path";
 import {config} from "./config";
 import {Admin, file} from "./utils";
-import * as util from "util";
 
 interface permission {
 	master: number;
@@ -26,7 +25,6 @@ class PluginError extends Error {
 }
 
 export class PluginINSTANCE {
-
 	private _name?: string;
 	private _desc?: string;
 	private cmd?: string | null;
@@ -40,7 +38,7 @@ export class PluginINSTANCE {
 		return this;
 	}
 
-	private desc(descstr: string): this {
+	public desc(descstr: string): this {
 		this._desc = descstr;
 		return this;
 	}
@@ -62,14 +60,14 @@ export class PluginINSTANCE {
 				this.fun = (e: any) => {
 					if (e.user_id === this.permission || this.permission?.includes(e.user_id))
 						if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
-							fun(e);
+							fun.call(this.bot, e);
 						}
 				};
 				return this;
 			}
 			this.fun = (e: any) => {
 				if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
-					fun(e);
+					fun.call(this.bot, e);
 				}
 			};
 			return this;
@@ -252,7 +250,6 @@ export class Plugin {
 }
 
 export class PluginInterface {
-
 	public static enableplugin(bot: Client, targetplugin: string) {
 		try {
 			Plugin.scanPluginFile(bot, targetplugin);

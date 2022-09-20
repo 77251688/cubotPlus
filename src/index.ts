@@ -1,7 +1,7 @@
-import {Client, OnlineStatus, segment} from "@cummins/oicq";
+import {Client} from "@cummins/oicq";
 import {client} from "./bot";
-import {Admin, system} from "./utils";
-import {Plugin, PluginInterface} from "./plugin";
+import {Admin} from "./utils";
+import {PluginInterface} from "./plugin";
 
 /**
  * 🤔😅🥰🥵🤨✅❌🥥🍇🍈🍋🍍🍪🍮🍹
@@ -71,56 +71,11 @@ function events(bot: Client) {
 	bot.on("message", onMessage);
 }
 
-function sys(this_: Client) {
-	const {arch, core, cpumodel} = system.cpu;
-	const {memory, usedmem, usepercent} = system.memory;
-	const OStype = system.OStype;
-	const usedmemory = parseInt(usedmem) < parseInt(memory) ? usedmem + "G" : usedmem + "G";
-	const {start_time, recv_msg_cnt, sent_msg_cnt, msg_cnt_per_min} = this_.stat;
-	let status: string | OnlineStatus = this_.status;
-	switch (status) {
-	case 11:
-		status = "我在线上";
-		break;
-	case 31:
-		status = "离开";
-		break;
-	case 41:
-		status = "隐身";
-		break;
-	case 50:
-		status = "忙碌";
-		break;
-	case 60:
-		status = "Q我吧";
-		break;
-	case 70:
-		status = "请勿打扰";
-		break;
-	}
-	const msg_: any = [];
-	msg_.push(segment.image(`https://q1.qlogo.cn/g?b=qq&s=0&nk=${this_.uin}`));
-	msg_.push(`昵称: ${this_.nickname}\n`);
-	msg_.push(`性别: ${this_.sex}\n`);
-	msg_.push(`状态: ${status}\n`);
-	msg_.push(`收到消息总数: ${recv_msg_cnt}\n`);
-	msg_.push(`发送消息总数: ${sent_msg_cnt}\n`);
-	msg_.push(`每分钟数: ${msg_cnt_per_min}\n`);
-	msg_.push(`cpu架构: ${arch}\n`);
-	msg_.push(`操作系统: ${OStype}\n`);
-	msg_.push(`cpu: ${cpumodel} ${core}核\n`);
-	msg_.push(`内存: ${usedmemory}/${memory}G ${usepercent}%`);
-	return msg_;
-}
-
 function cmdHanders(this: Client, cmd: string, params: string) {
 	const cmd_ = params[0];
 	const cmd__ = params[1];
 	try {
 		let msg = "";
-		if (cmd === "详情") {
-			return sys(this);
-		}
 		if (cmd === "帮助" || cmd === "help") {
 			msg += `#详情 [机器人详情]\n`;
 			msg += `#插件 [插件帮助]\n`;

@@ -92,21 +92,30 @@ class system {
         /** All mem */
         const memory_ = os.totalmem();
         const memory__ = memory_ / 1024 / 1024 / 1024;
-        const memory = slice_(memory__);
+        const memory = memory__.toFixed(3);
         /** Free mem */
         const freemem_ = os.freemem();
         const _freemem = freemem_ / 1024 / 1024 / 1024;
         const freemem__ = _freemem > 1 ? _freemem : _freemem * 1024;
-        const freemem = slice_(freemem__);
+        const freemem = freemem__.toFixed(3);
         /** Uesd mem */
         const usedmem_ = (memory_ - freemem_) / 1024 / 1024 / 1024;
         const usedmem__ = usedmem_ > 1 ? usedmem_ : usedmem_ * 1024;
-        const usedmem = slice_(usedmem__);
+        const usedmem = usedmem__.toFixed(3);
         /** percent */
         const usepercent__ = usedmem__ / memory__ * 100;
-        const usepercent = slice_(usepercent__);
+        const usepercent = usepercent__.toFixed(3);
         console.log({ memory, freemem, usedmem, usepercent });
         return { memory, freemem, usedmem, usepercent };
+    }
+    static get processmemory() {
+        const { rss, heapTotal, heapUsed, external, arrayBuffers } = process.memoryUsage();
+        const rss_ = (rss / 1024 / 1024).toFixed(3);
+        const heapTotal_ = (heapTotal / 1024 / 1024).toFixed(3);
+        const heapUsed_ = (heapUsed / 1024 / 1024).toFixed(3);
+        const external_ = (external / 1024 / 1024).toFixed(3);
+        const arrayBuffers_ = (arrayBuffers / 1024 / 1024).toFixed(3);
+        return { rss_, heapTotal_, heapUsed_, external_, arrayBuffers_ };
     }
     /** OS */
     static get OStype() {
@@ -122,12 +131,6 @@ class system {
     }
 }
 exports.system = system;
-const slice_ = (e) => {
-    const str = e.toString();
-    const index_ = str.indexOf(".") + 3;
-    const result = str.slice(0, index_);
-    return result;
-};
 /**
  * File类
  */
@@ -174,4 +177,3 @@ class random {
     }
 }
 exports.random = random;
-/** timestamp */
