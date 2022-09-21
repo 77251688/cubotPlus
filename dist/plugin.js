@@ -29,7 +29,9 @@ class PluginINSTANCE {
         return this;
     }
     command(cmd, event, permission) {
-        this.cmd = cmd;
+        // this.cmd = cmd;
+        this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
+        console.log(this.cmd);
         this.event = event;
         this.permission = permission;
         return this;
@@ -42,16 +44,21 @@ class PluginINSTANCE {
                 else if (this.permission === "admin")
                     this.permission = utils_1.Admin.getadmins;
                 this.fun = (e) => {
-                    if (e.user_id === this.permission || this.permission?.includes(e.user_id))
-                        if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(this.cmd)) {
-                            fun.call(this.bot, e);
+                    if (e.user_id === this.permission || this.permission?.includes(e.user_id)) {
+                        // if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
+                        const msgArr = e.raw_message.trim().split(" ");
+                        if (this.cmd?.includes(msgArr[0])) {
+                            fun.call(this.bot, e, msgArr[0], msgArr[1]);
                         }
+                    }
                 };
                 return this;
             }
             this.fun = (e) => {
-                if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(this.cmd)) {
-                    fun.call(this.bot, e);
+                // if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
+                const msgArr = e.raw_message.trim().split(" ");
+                if (this.cmd?.includes(msgArr[0])) {
+                    fun.call(this.bot, e, msgArr[0], msgArr[1]);
                 }
             };
             return this;

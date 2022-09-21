@@ -9,6 +9,12 @@ interface permission {
 	admin: Array<number>;
 }
 
+interface fun {
+	e: any;
+	trigger: string;
+	param: string;
+}
+
 interface plugincache {
 	path: string;
 	pluginInstance: PluginINSTANCE;
@@ -27,10 +33,10 @@ class PluginError extends Error {
 export class PluginINSTANCE {
 	private _name?: string;
 	private _desc?: string;
-	private cmd?: string | null;
+	private cmd?: string[] | null;
 	private event!: keyof EventMap;
 	private permission?: keyof permission;
-	private fun!: (...args: any) => unknown;
+	private fun!: (...args: any) => void;
 	private bot!: Client;
 
 	public name(namestr: string): this {
@@ -44,7 +50,9 @@ export class PluginINSTANCE {
 	}
 
 	public command<T extends string, E extends keyof EventMap, P extends keyof permission>(cmd: T | null, event: E, permission?: P): this {
-		this.cmd = cmd;
+		// this.cmd = cmd;
+		this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
+		console.log(this.cmd);
 		this.event = event;
 		this.permission = permission;
 		return this;
@@ -58,16 +66,21 @@ export class PluginINSTANCE {
 				else if (this.permission === "admin")
 					this.permission = Admin.getadmins;
 				this.fun = (e: any) => {
-					if (e.user_id === this.permission || this.permission?.includes(e.user_id))
-						if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
-							fun.call(this.bot, e);
+					if (e.user_id === this.permission || this.permission?.includes(e.user_id)) {
+						// if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
+						const msgArr = e.raw_message.trim().split(" ");
+						if (this.cmd?.includes(msgArr[0])) {
+							fun.call(this.bot, e, msgArr[0], msgArr[1]);
 						}
+					}
 				};
 				return this;
 			}
 			this.fun = (e: any) => {
-				if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
-					fun.call(this.bot, e);
+				// if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
+				const msgArr = e.raw_message.trim().split(" ");
+				if (this.cmd?.includes(msgArr[0])) {
+					fun.call(this.bot, e, msgArr[0], msgArr[1]);
 				}
 			};
 			return this;
@@ -262,7 +275,7 @@ export class PluginInterface {
 		Plugin.disable(this, targetplugin);
 		try {
 			Plugin.scanPluginFile(this, targetplugin);
-		} catch (err) {
+		} catch (err: any) {
 			return err.message;
 		}
 		return;
