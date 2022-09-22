@@ -20,7 +20,7 @@ interface plugincache {
 	pluginInstance: PluginINSTANCE;
 }
 
-class PluginError extends Error {
+export class PluginError extends Error {
 
 	public name: string;
 
@@ -35,7 +35,7 @@ export class PluginINSTANCE {
 	private _desc?: string;
 	private cmd?: string[] | null;
 	private event!: keyof EventMap;
-	private permission?: keyof permission;
+	private permission?: keyof permission | Array<number | any>;
 	private fun!: (...args: any) => void;
 	private bot!: Client;
 
@@ -52,7 +52,6 @@ export class PluginINSTANCE {
 	public command<T extends string, E extends keyof EventMap, P extends keyof permission>(cmd: T | null, event: E, permission?: P): this {
 		// this.cmd = cmd;
 		this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
-		console.log(this.cmd);
 		this.event = event;
 		this.permission = permission;
 		return this;
@@ -62,11 +61,11 @@ export class PluginINSTANCE {
 		if (this.cmd) {
 			if (this.permission) {
 				if (this.permission === "master")
-					this.permission = Admin.getmaster;
+					this.permission = Admin.getmasterArr;
 				else if (this.permission === "admin")
 					this.permission = Admin.getadmins;
 				this.fun = (e: any) => {
-					if (e.user_id === this.permission || this.permission?.includes(e.user_id)) {
+					if (this.permission?.includes(e.user_id)) {
 						// if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
 						const msgArr = e.raw_message.trim().split(" ");
 						if (this.cmd?.includes(msgArr[0])) {
@@ -87,11 +86,11 @@ export class PluginINSTANCE {
 		}
 		if (this.permission) {
 			if (this.permission === "master")
-				this.permission = Admin.getmaster;
+				this.permission = Admin.getmasterArr;
 			else if (this.permission === "admin")
 				this.permission = Admin.getadmins;
 			this.fun = (e: any) => {
-				if (e.user_id === this.permission || this.permission?.includes(e.user_id))
+				if (this.permission?.includes(e.user_id))
 					fun(e);
 			};
 		}
@@ -119,9 +118,9 @@ export class PluginINSTANCE {
 }
 
 export class Plugin {
-	private static pluginFile = join(__dirname, "../plugin");
+	private static _pluginFile = join(__dirname, "../plugin");
 	private static config = config.returnconfig();
-	private static pluginFileList = file.readdir(this.pluginFile);
+	private static pluginFileList = file.readdir(this._pluginFile);
 	private static EnabledPluginList = config.returnconfig().plugins;
 	private static pluginDirectoryList: Array<string>;
 	private static EnabledPluginMap: Map<string, plugincache> = new Map<string, plugincache>();
@@ -188,18 +187,18 @@ export class Plugin {
 
 	public static scan<F extends (...args: Array<any>) => any, F1 extends (...args: Array<any>) => any, T>(fun: F, fun1: F1, ...args: Array<T>) {
 		this.pluginFileList.map(e => {
-			const fullpath = join(this.pluginFile, e);
+			const fullpath = join(this._pluginFile, e);
 			const stat = statSync(fullpath);
 			if (stat.isDirectory()) {
 				this.pluginDirectoryList = readdirSync(fullpath);
 				this.pluginDirectoryList.map(E => {
 					if (E.endsWith(".js")) {
-						fun.call(this);
+						fun.call(this, fullpath, E);
 					}
 				});
 			} else {
 				if (e.endsWith(".js")) {
-					fun1.call(this);
+					fun1.call(this, fullpath, e);
 				}
 			}
 		});
@@ -210,7 +209,7 @@ export class Plugin {
 		bot.logger.warn("开始扫描插件目录...");
 		this.pluginFileList.map(e => {
 			this.startTime = +new Date();
-			const fullpath = join(this.pluginFile, e);
+			const fullpath = join(this._pluginFile, e);
 			const data = statSync(fullpath);
 			if (data.isDirectory()) {
 				this.pluginDirectoryList = readdirSync(fullpath);
@@ -226,10 +225,14 @@ export class Plugin {
 		return;
 	}
 
+	public static get pluginFile(): string {
+		return this._pluginFile;
+	}
+
 	public static get pluginList() {
 		const pluginlist: Array<string> = [];
 		this.pluginFileList.map(e => {
-			const fullpath = join(this.pluginFile, e);
+			const fullpath = join(this._pluginFile, e);
 			const stat = statSync(fullpath);
 			if (stat.isDirectory()) {
 				this.pluginDirectoryList = readdirSync(fullpath);
@@ -285,7 +288,7 @@ export class PluginInterface {
 		return Plugin.disable(bot, targetplugin);
 	}
 
-	public scan<F extends (...args: Array<any>) => any, F1 extends (...args: Array<any>) => any, T>(fun: F, fun1: F1, ...args: Array<T>) {
+	public static scan<F extends (...args: Array<any>) => any, F1 extends (...args: Array<any>) => any, T>(fun: F, fun1: F1, ...args: Array<T>) {
 		Plugin.scan(fun, fun1, ...args);
 		return;
 	}

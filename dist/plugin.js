@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PluginInterface = exports.Plugin = exports.PluginINSTANCE = void 0;
+exports.PluginInterface = exports.Plugin = exports.PluginINSTANCE = exports.PluginError = void 0;
 const fs_1 = require("fs");
 const path_1 = require("path");
 const config_1 = require("./config");
@@ -12,6 +12,7 @@ class PluginError extends Error {
         this.name = "PluginError";
     }
 }
+exports.PluginError = PluginError;
 class PluginINSTANCE {
     _name;
     _desc;
@@ -31,7 +32,6 @@ class PluginINSTANCE {
     command(cmd, event, permission) {
         // this.cmd = cmd;
         this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
-        console.log(this.cmd);
         this.event = event;
         this.permission = permission;
         return this;
@@ -40,11 +40,11 @@ class PluginINSTANCE {
         if (this.cmd) {
             if (this.permission) {
                 if (this.permission === "master")
-                    this.permission = utils_1.Admin.getmaster;
+                    this.permission = utils_1.Admin.getmasterArr;
                 else if (this.permission === "admin")
                     this.permission = utils_1.Admin.getadmins;
                 this.fun = (e) => {
-                    if (e.user_id === this.permission || this.permission?.includes(e.user_id)) {
+                    if (this.permission?.includes(e.user_id)) {
                         // if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
                         const msgArr = e.raw_message.trim().split(" ");
                         if (this.cmd?.includes(msgArr[0])) {
@@ -65,11 +65,11 @@ class PluginINSTANCE {
         }
         if (this.permission) {
             if (this.permission === "master")
-                this.permission = utils_1.Admin.getmaster;
+                this.permission = utils_1.Admin.getmasterArr;
             else if (this.permission === "admin")
                 this.permission = utils_1.Admin.getadmins;
             this.fun = (e) => {
-                if (e.user_id === this.permission || this.permission?.includes(e.user_id))
+                if (this.permission?.includes(e.user_id))
                     fun(e);
             };
         }
@@ -93,9 +93,9 @@ class PluginINSTANCE {
 }
 exports.PluginINSTANCE = PluginINSTANCE;
 class Plugin {
-    static pluginFile = path_1.join(__dirname, "../plugin");
+    static _pluginFile = path_1.join(__dirname, "../plugin");
     static config = config_1.config.returnconfig();
-    static pluginFileList = utils_1.file.readdir(this.pluginFile);
+    static pluginFileList = utils_1.file.readdir(this._pluginFile);
     static EnabledPluginList = config_1.config.returnconfig().plugins;
     static pluginDirectoryList;
     static EnabledPluginMap = new Map();
@@ -159,19 +159,19 @@ class Plugin {
     }
     static scan(fun, fun1, ...args) {
         this.pluginFileList.map(e => {
-            const fullpath = path_1.join(this.pluginFile, e);
+            const fullpath = path_1.join(this._pluginFile, e);
             const stat = fs_1.statSync(fullpath);
             if (stat.isDirectory()) {
                 this.pluginDirectoryList = fs_1.readdirSync(fullpath);
                 this.pluginDirectoryList.map(E => {
                     if (E.endsWith(".js")) {
-                        fun.call(this);
+                        fun.call(this, fullpath, E);
                     }
                 });
             }
             else {
                 if (e.endsWith(".js")) {
-                    fun1.call(this);
+                    fun1.call(this, fullpath, e);
                 }
             }
         });
@@ -181,7 +181,7 @@ class Plugin {
         bot.logger.warn("开始扫描插件目录...");
         this.pluginFileList.map(e => {
             this.startTime = +new Date();
-            const fullpath = path_1.join(this.pluginFile, e);
+            const fullpath = path_1.join(this._pluginFile, e);
             const data = fs_1.statSync(fullpath);
             if (data.isDirectory()) {
                 this.pluginDirectoryList = fs_1.readdirSync(fullpath);
@@ -197,10 +197,13 @@ class Plugin {
         });
         return;
     }
+    static get pluginFile() {
+        return this._pluginFile;
+    }
     static get pluginList() {
         const pluginlist = [];
         this.pluginFileList.map(e => {
-            const fullpath = path_1.join(this.pluginFile, e);
+            const fullpath = path_1.join(this._pluginFile, e);
             const stat = fs_1.statSync(fullpath);
             if (stat.isDirectory()) {
                 this.pluginDirectoryList = fs_1.readdirSync(fullpath);
@@ -258,7 +261,7 @@ class PluginInterface {
     static disableplugin(bot, targetplugin) {
         return Plugin.disable(bot, targetplugin);
     }
-    scan(fun, fun1, ...args) {
+    static scan(fun, fun1, ...args) {
         Plugin.scan(fun, fun1, ...args);
         return;
     }
