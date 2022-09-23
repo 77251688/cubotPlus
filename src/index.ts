@@ -3,12 +3,6 @@ import {client} from "./bot";
 import {Admin} from "./utils";
 import {PluginInterface} from "./plugin";
 
-/**
- * 🤔😅🥰🥵🤨✅❌🥥🍇🍈🍋🍍🍪🍮🍹
- * 无规则命名法🥵🥰🥰🥰
- * 无规则注释
- */
-
 function onMessage(this: Client, e: any) {
 	const admin = Admin.getmaster;
 	const cmdstartstr = "#";

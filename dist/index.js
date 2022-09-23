@@ -3,11 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const bot_1 = require("./bot");
 const utils_1 = require("./utils");
 const plugin_1 = require("./plugin");
-/**
- * 🤔😅🥰🥵🤨✅❌🥥🍇🍈🍋🍍🍪🍮🍹
- * 无规则命名法🥵🥰🥰🥰
- * 无规则注释
- */
 function onMessage(e) {
     const admin = utils_1.Admin.getmaster;
     const cmdstartstr = "#";

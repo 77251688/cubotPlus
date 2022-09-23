@@ -47,8 +47,18 @@ class PluginINSTANCE {
                     if (this.permission?.includes(e.user_id)) {
                         // if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
                         const msgArr = e.raw_message.trim().split(" ");
+                        let trigger;
                         if (this.cmd?.includes(msgArr[0])) {
                             fun.call(this.bot, e, msgArr[0], msgArr[1]);
+                            return;
+                        }
+                        else if (this.cmd?.some(item => {
+                            trigger = item;
+                            return e.raw_message.startsWith(item);
+                        })) {
+                            fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+                            trigger = null;
+                            return;
                         }
                     }
                 };
@@ -57,8 +67,18 @@ class PluginINSTANCE {
             this.fun = (e) => {
                 // if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
                 const msgArr = e.raw_message.trim().split(" ");
+                let trigger;
                 if (this.cmd?.includes(msgArr[0])) {
                     fun.call(this.bot, e, msgArr[0], msgArr[1]);
+                    return;
+                }
+                else if (this.cmd?.some(item => {
+                    trigger = item;
+                    return e.raw_message.startsWith(item);
+                })) {
+                    fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+                    trigger = null;
+                    return;
                 }
             };
             return this;
@@ -69,8 +89,10 @@ class PluginINSTANCE {
             else if (this.permission === "admin")
                 this.permission = utils_1.Admin.getadmins;
             this.fun = (e) => {
-                if (this.permission?.includes(e.user_id))
+                if (this.permission?.includes(e.user_id)) {
                     fun(e);
+                    return;
+                }
             };
         }
         this.fun = fun;
