@@ -29,6 +29,10 @@ class Admin {
         const { admins } = config_1.config.returnconfig();
         return admins[0];
     }
+    static get getmasterArr() {
+        const { admins } = config_1.config.returnconfig();
+        return [admins[0]];
+    }
     static get getadmins() {
         const { admins } = config_1.config.returnconfig();
         return admins;
@@ -105,7 +109,6 @@ class system {
         /** percent */
         const usepercent__ = usedmem__ / memory__ * 100;
         const usepercent = usepercent__.toFixed(3);
-        console.log({ memory, freemem, usedmem, usepercent });
         return { memory, freemem, usedmem, usepercent };
     }
     static get processmemory() {

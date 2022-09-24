@@ -1,28 +1,12 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = void 0;
-const fs = __importStar(require("fs"));
-const path = __importStar(require("path"));
-const inquirer = __importStar(require("inquirer"));
+const fs_1 = require("fs");
+const path_1 = require("path");
+const inquirer_1 = __importDefault(require("inquirer"));
 /**
  * @config
  *
@@ -30,17 +14,25 @@ const inquirer = __importStar(require("inquirer"));
 class config {
     static create() {
         const path_ = config.path();
-        fs.writeFileSync(`${path_}config`, '');
+        fs_1.writeFileSync(`${path_}config`, "");
     }
     static path() {
-        return path.join(__dirname, '../');
+        return path_1.join(__dirname, "../");
     }
     /** initwriteconfig */
     static initwriteconfig() {
-        const initobj = { "bot": '', "mode": "qrcode", "password": "", "verifymethod": null, "admins": [], "plugins": [], "platform": 5 };
-        const config_ = JSON.stringify(initobj, null, '\t');
+        const initobj = {
+            "bot": "",
+            "mode": "qrcode",
+            "password": "",
+            "verifymethod": null,
+            "admins": [],
+            "plugins": [],
+            "platform": 5
+        };
+        const config_ = JSON.stringify(initobj, null, "\t");
         const path_ = config.path();
-        fs.writeFileSync(`${path_}config.json`, config_);
+        fs_1.writeFileSync(`${path_}config.json`, config_);
     }
     /** sysin */
     static sysin() {
@@ -51,7 +43,7 @@ class config {
                     name: "clientid",
                     message: "输入机器人qq号",
                     validate: (e) => {
-                        return e.trim() != '';
+                        return e.trim() != "";
                     }
                 },
                 {
@@ -59,7 +51,7 @@ class config {
                     name: "admin",
                     message: "输入管理员qq号",
                     validate: (e) => {
-                        return e.trim() != '';
+                        return e.trim() != "";
                     }
                 },
                 {
@@ -90,7 +82,7 @@ class config {
                     default: "5(iPad)"
                 }
             ];
-            inquirer.prompt(quesions).then(e => {
+            inquirer_1.default.prompt(quesions).then(e => {
                 const { clientid, admin, loginmode, platform, password } = e;
                 const config_ = config.returnconfig();
                 config_.bot = parseInt(clientid);
@@ -112,17 +104,17 @@ class config {
     /** return ../ list is has config.json? */
     static readlist() {
         const path_ = config.path();
-        return fs.readdirSync(path_);
+        return fs_1.readdirSync(path_);
     }
     /** rename config to config.json */
     static rename() {
         const path_ = config.path();
-        fs.renameSync(`${path_}config`, `${path_}config.json`);
+        fs_1.renameSync(`${path_}config`, `${path_}config.json`);
     }
     /** return config.json config in  */
     static returnconfig() {
         const path_ = config.path();
-        return JSON.parse(fs.readFileSync(`${path_}config.json`, 'utf8'));
+        return JSON.parse(fs_1.readFileSync(`${path_}config.json`, "utf8"));
     }
     /** passwordlogin verifymethod */
     static verifymethod() {
@@ -132,7 +124,7 @@ class config {
                 res("qrcode");
                 return;
             }
-            inquirer.prompt(q).then(e => {
+            inquirer_1.default.prompt(q).then(e => {
                 const { verifymethod } = e;
                 if (verifymethod === "url验证") {
                     config_.verifymethod = "urlverify";
@@ -147,9 +139,9 @@ class config {
     }
     /** write config */
     static writeconfig(data) {
-        const config_ = JSON.stringify(data, null, '\t');
+        const config_ = JSON.stringify(data, null, "\t");
         const path_ = config.path();
-        fs.writeFileSync(`${path_}config.json`, config_);
+        fs_1.writeFileSync(`${path_}config.json`, config_);
         return true;
     }
 }
