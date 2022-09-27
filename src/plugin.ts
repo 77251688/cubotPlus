@@ -34,10 +34,12 @@ export class PluginINSTANCE {
 	private _name?: string;
 	private _desc?: string;
 	private cmd?: string[] | null;
-	private event!: keyof EventMap;
+	private event!: Array<keyof EventMap>;
 	private permission?: keyof permission | Array<number | any>;
 	private fun!: (...args: any) => void;
 	private bot!: Client;
+	// 实验性多监听
+	private funArr: Array<(...args: any) => void> = [];
 
 	public name(namestr: string): this {
 		this._name = namestr;
@@ -49,82 +51,162 @@ export class PluginINSTANCE {
 		return this;
 	}
 
-	public command<T extends string, E extends keyof EventMap, P extends keyof permission>(cmd: T | null, event: E, permission?: P): this {
-		// this.cmd = cmd;
+	// public command<T extends string, E extends keyof EventMap, P extends keyof permission>(cmd: T | null, event: E, permission?: P): this {
+	// 	// this.cmd = cmd;
+	// 	this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
+	// 	this.event = event;
+	// 	this.permission = permission;
+	// 	return this;
+	// }
+
+	// public action<T extends (...args: any) => void>(fun: T): this {
+	// 	if (this.cmd) {
+	// 		if (this.permission) {
+	// 			if (this.permission === "master")
+	// 				this.permission = Admin.getmasterArr;
+	// 			else if (this.permission === "admin")
+	// 				this.permission = Admin.getadmins;
+	// 			this.fun = (e: any) => {
+	// 				if (this.permission?.includes(e.user_id)) {
+	// 					// if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
+	// 					const msgArr = e.raw_message.trim().split(" ");
+	// 					let trigger;
+	// 					if (this.cmd?.includes(msgArr[0])) {
+	// 						fun.call(this.bot, e, msgArr[0], msgArr[1]);
+	// 						return;
+	// 					} else if (this.cmd?.some(item => {
+	// 						trigger = item;
+	// 						return e.raw_message.startsWith(item);
+	// 					})) {
+	// 						fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+	// 						trigger = null;
+	// 						return;
+	// 					}
+	// 				}
+	// 			};
+	// 			return this;
+	// 		}
+	// 		this.fun = (e: any) => {
+	// 			// if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
+	// 			const msgArr = e.raw_message.trim().split(" ");
+	// 			let trigger;
+	// 			if (this.cmd?.includes(msgArr[0])) {
+	// 				fun.call(this.bot, e, msgArr[0], msgArr[1]);
+	// 				return;
+	// 			} else if (this.cmd?.some(item => {
+	// 				trigger = item;
+	// 				return e.raw_message.startsWith(item);
+	// 			})) {
+	// 				fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+	// 				trigger = null;
+	// 				return;
+	// 			}
+	// 		};
+	// 		return this;
+	// 	}
+	// 	if (this.permission) {
+	// 		if (this.permission === "master")
+	// 			this.permission = Admin.getmasterArr;
+	// 		else if (this.permission === "admin")
+	// 			this.permission = Admin.getadmins;
+	// 		this.fun = (e: any) => {
+	// 			if (this.permission?.includes(e.user_id)) {
+	// 				fun(e);
+	// 				return;
+	// 			}
+	// 		};
+	// 	}
+	// 	this.fun = fun;
+	// 	return this;
+	// }
+
+	// **********************************************************//
+
+	// 实验性多监听
+	public command<T extends string, E extends Array<keyof EventMap>, P extends keyof permission>(cmd: T | null, event: E | string, permission?: P): this {
 		this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
-		this.event = event;
+		if (Array.isArray(event))
+			this.event = event;
+		else
+			this.event = event.split(" ") as Array<keyof EventMap>;
 		this.permission = permission;
 		return this;
 	}
 
-	public action<T extends (...args: any) => void>(fun: T): this {
-		if (this.cmd) {
+	public action<T extends Array<(...args: any) => void>>(...args: T): this {
+		args.map(fun => {
+			if (this.cmd) {
+				if (this.permission) {
+					if (this.permission === "master")
+						this.permission = Admin.getmasterArr;
+					else if (this.permission === "admin")
+						this.permission = Admin.getadmins;
+					this.funArr.push((e: any) => {
+						if (this.permission?.includes(e.user_id)) {
+							const msgArr = e.raw_message.trim().split(" ");
+							let trigger;
+							if (this.cmd?.includes(msgArr[0])) {
+								fun.call(this.bot, e, msgArr[0], msgArr[1]);
+								return;
+							} else if (this.cmd?.some(item => {
+								trigger = item;
+								return e.raw_message.startsWith(item);
+							})) {
+								fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+								trigger = null;
+								return;
+							}
+						}
+					});
+					return this;
+				}
+				this.funArr.push((e: any) => {
+					// if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
+					const msgArr = e.raw_message.trim().split(" ");
+					let trigger;
+					if (this.cmd?.includes(msgArr[0])) {
+						fun.call(this.bot, e, msgArr[0], msgArr[1]);
+						return;
+					} else if (this.cmd?.some(item => {
+						trigger = item;
+						return e.raw_message.startsWith(item);
+					})) {
+						fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+						trigger = null;
+						return;
+					}
+				});
+				return this;
+			}
 			if (this.permission) {
 				if (this.permission === "master")
 					this.permission = Admin.getmasterArr;
 				else if (this.permission === "admin")
 					this.permission = Admin.getadmins;
-				this.fun = (e: any) => {
+				this.funArr.push((e: any) => {
 					if (this.permission?.includes(e.user_id)) {
-						// if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
-						const msgArr = e.raw_message.trim().split(" ");
-						let trigger;
-						if (this.cmd?.includes(msgArr[0])) {
-							fun.call(this.bot, e, msgArr[0], msgArr[1]);
-							return;
-						} else if (this.cmd?.some(item => {
-							trigger = item;
-							return e.raw_message.startsWith(item);
-						})) {
-							fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
-							trigger = null;
-							return;
-						}
+						fun(e);
+						return;
 					}
-				};
-				return this;
+				});
 			}
-			this.fun = (e: any) => {
-				// if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
-				const msgArr = e.raw_message.trim().split(" ");
-				let trigger;
-				if (this.cmd?.includes(msgArr[0])) {
-					fun.call(this.bot, e, msgArr[0], msgArr[1]);
-					return;
-				} else if (this.cmd?.some(item => {
-					trigger = item;
-					return e.raw_message.startsWith(item);
-				})) {
-					fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
-					trigger = null;
-					return;
-				}
-			};
-			return this;
-		}
-		if (this.permission) {
-			if (this.permission === "master")
-				this.permission = Admin.getmasterArr;
-			else if (this.permission === "admin")
-				this.permission = Admin.getadmins;
-			this.fun = (e: any) => {
-				if (this.permission?.includes(e.user_id)) {
-					fun(e);
-					return;
-				}
-			};
-		}
-		this.fun = fun;
+			this.funArr.push(fun);
+		});
+
 		return this;
 	}
 
 	public build(bot: Client) {
 		this.bot = bot;
-		bot.on(this.event, this.fun);
+		this.event.map((e: any, index: number) => {
+			bot.on(e, this.funArr[index]);
+		});
 	}
 
 	public get disable(): void {
-		this.bot.off(this.event, this.fun);
+		this.event.map((e: any, index: number) => {
+			this.bot.off(e, this.funArr[index]);
+		});
 		return;
 	}
 

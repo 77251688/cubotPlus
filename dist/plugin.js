@@ -21,6 +21,8 @@ class PluginINSTANCE {
     permission;
     fun;
     bot;
+    // 实验性多监听
+    funArr = [];
     name(namestr) {
         this._name = namestr;
         return this;
@@ -29,81 +31,157 @@ class PluginINSTANCE {
         this._desc = descstr;
         return this;
     }
+    // public command<T extends string, E extends keyof EventMap, P extends keyof permission>(cmd: T | null, event: E, permission?: P): this {
+    // 	// this.cmd = cmd;
+    // 	this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
+    // 	this.event = event;
+    // 	this.permission = permission;
+    // 	return this;
+    // }
+    // public action<T extends (...args: any) => void>(fun: T): this {
+    // 	if (this.cmd) {
+    // 		if (this.permission) {
+    // 			if (this.permission === "master")
+    // 				this.permission = Admin.getmasterArr;
+    // 			else if (this.permission === "admin")
+    // 				this.permission = Admin.getadmins;
+    // 			this.fun = (e: any) => {
+    // 				if (this.permission?.includes(e.user_id)) {
+    // 					// if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
+    // 					const msgArr = e.raw_message.trim().split(" ");
+    // 					let trigger;
+    // 					if (this.cmd?.includes(msgArr[0])) {
+    // 						fun.call(this.bot, e, msgArr[0], msgArr[1]);
+    // 						return;
+    // 					} else if (this.cmd?.some(item => {
+    // 						trigger = item;
+    // 						return e.raw_message.startsWith(item);
+    // 					})) {
+    // 						fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+    // 						trigger = null;
+    // 						return;
+    // 					}
+    // 				}
+    // 			};
+    // 			return this;
+    // 		}
+    // 		this.fun = (e: any) => {
+    // 			// if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
+    // 			const msgArr = e.raw_message.trim().split(" ");
+    // 			let trigger;
+    // 			if (this.cmd?.includes(msgArr[0])) {
+    // 				fun.call(this.bot, e, msgArr[0], msgArr[1]);
+    // 				return;
+    // 			} else if (this.cmd?.some(item => {
+    // 				trigger = item;
+    // 				return e.raw_message.startsWith(item);
+    // 			})) {
+    // 				fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+    // 				trigger = null;
+    // 				return;
+    // 			}
+    // 		};
+    // 		return this;
+    // 	}
+    // 	if (this.permission) {
+    // 		if (this.permission === "master")
+    // 			this.permission = Admin.getmasterArr;
+    // 		else if (this.permission === "admin")
+    // 			this.permission = Admin.getadmins;
+    // 		this.fun = (e: any) => {
+    // 			if (this.permission?.includes(e.user_id)) {
+    // 				fun(e);
+    // 				return;
+    // 			}
+    // 		};
+    // 	}
+    // 	this.fun = fun;
+    // 	return this;
+    // }
+    // **********************************************************//
+    // 实验性多监听
     command(cmd, event, permission) {
-        // this.cmd = cmd;
         this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
-        this.event = event;
+        if (Array.isArray(event))
+            this.event = event;
+        else
+            this.event = event.split(" ");
         this.permission = permission;
         return this;
     }
-    action(fun) {
-        if (this.cmd) {
+    action(...args) {
+        args.map(fun => {
+            if (this.cmd) {
+                if (this.permission) {
+                    if (this.permission === "master")
+                        this.permission = utils_1.Admin.getmasterArr;
+                    else if (this.permission === "admin")
+                        this.permission = utils_1.Admin.getadmins;
+                    this.funArr.push((e) => {
+                        if (this.permission?.includes(e.user_id)) {
+                            const msgArr = e.raw_message.trim().split(" ");
+                            let trigger;
+                            if (this.cmd?.includes(msgArr[0])) {
+                                fun.call(this.bot, e, msgArr[0], msgArr[1]);
+                                return;
+                            }
+                            else if (this.cmd?.some(item => {
+                                trigger = item;
+                                return e.raw_message.startsWith(item);
+                            })) {
+                                fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+                                trigger = null;
+                                return;
+                            }
+                        }
+                    });
+                    return this;
+                }
+                this.funArr.push((e) => {
+                    // if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
+                    const msgArr = e.raw_message.trim().split(" ");
+                    let trigger;
+                    if (this.cmd?.includes(msgArr[0])) {
+                        fun.call(this.bot, e, msgArr[0], msgArr[1]);
+                        return;
+                    }
+                    else if (this.cmd?.some(item => {
+                        trigger = item;
+                        return e.raw_message.startsWith(item);
+                    })) {
+                        fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
+                        trigger = null;
+                        return;
+                    }
+                });
+                return this;
+            }
             if (this.permission) {
                 if (this.permission === "master")
                     this.permission = utils_1.Admin.getmasterArr;
                 else if (this.permission === "admin")
                     this.permission = utils_1.Admin.getadmins;
-                this.fun = (e) => {
+                this.funArr.push((e) => {
                     if (this.permission?.includes(e.user_id)) {
-                        // if (e.raw_message.split(" ")[0] || e.raw_message.startsWith(<string>this.cmd)) {
-                        const msgArr = e.raw_message.trim().split(" ");
-                        let trigger;
-                        if (this.cmd?.includes(msgArr[0])) {
-                            fun.call(this.bot, e, msgArr[0], msgArr[1]);
-                            return;
-                        }
-                        else if (this.cmd?.some(item => {
-                            trigger = item;
-                            return e.raw_message.startsWith(item);
-                        })) {
-                            fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
-                            trigger = null;
-                            return;
-                        }
+                        fun(e);
+                        return;
                     }
-                };
-                return this;
+                });
             }
-            this.fun = (e) => {
-                // if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
-                const msgArr = e.raw_message.trim().split(" ");
-                let trigger;
-                if (this.cmd?.includes(msgArr[0])) {
-                    fun.call(this.bot, e, msgArr[0], msgArr[1]);
-                    return;
-                }
-                else if (this.cmd?.some(item => {
-                    trigger = item;
-                    return e.raw_message.startsWith(item);
-                })) {
-                    fun.call(this.bot, e, trigger, e.raw_message.replace(trigger, "").trim());
-                    trigger = null;
-                    return;
-                }
-            };
-            return this;
-        }
-        if (this.permission) {
-            if (this.permission === "master")
-                this.permission = utils_1.Admin.getmasterArr;
-            else if (this.permission === "admin")
-                this.permission = utils_1.Admin.getadmins;
-            this.fun = (e) => {
-                if (this.permission?.includes(e.user_id)) {
-                    fun(e);
-                    return;
-                }
-            };
-        }
-        this.fun = fun;
+            this.funArr.push(fun);
+        });
         return this;
     }
     build(bot) {
         this.bot = bot;
-        bot.on(this.event, this.fun);
+        this.event.map((e, index) => {
+            bot.on(e, this.funArr[index]);
+        });
     }
     get disable() {
-        this.bot.off(this.event, this.fun);
+        this.event.map((e, index) => {
+            this.bot.off(e, this.funArr[index]);
+        });
         return;
     }
     get getname() {
