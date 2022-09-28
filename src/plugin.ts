@@ -262,9 +262,8 @@ export class Plugin {
 				this.handlerSet(plugin.getname, "add");
 				this.config.plugins = Array.from(this.EnabledPluginSet);
 				file.writeFile(join(process.cwd(), "../config.json"), this.config);
-				bot.logger.warn(`已载入 ${plugin.getname}`);
 				this.endTime = +new Date();
-				bot.logger.warn(`${this.endTime - this.startTime}ms`);
+				bot.logger.warn(`已载入 ${plugin.getname} ${this.endTime - this.startTime}ms`);
 				throw new PluginError(`已载入 ${plugin.getname}`);
 			} else
 				return;
@@ -272,9 +271,8 @@ export class Plugin {
 			plugin.build(bot);
 			this.handlerMap(plugin.getname, {path: fullpath, pluginInstance: plugin}, "set");
 			this.handlerSet(plugin.getname, "add");
-			bot.logger.warn(`已载入 ${plugin.getname}`);
 			this.endTime = +new Date();
-			bot.logger.warn(`${this.endTime - this.startTime}ms`);
+			bot.logger.warn(`已载入 ${plugin.getname} ${this.endTime - this.startTime}ms`);
 		}
 		return;
 	}
