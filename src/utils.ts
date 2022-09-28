@@ -2,6 +2,11 @@ import * as fs from "fs";
 import {readdirSync} from "fs";
 import * as os from "os";
 import {config} from "./config";
+import {getHeapSpaceStatistics, HeapSpaceInfo} from "v8";
+
+interface HeapSpaceStatistics {
+	[key: string]: any;
+}
 
 export class Admin {
 	public static get getmaster(): number {
@@ -100,6 +105,18 @@ export class system {
 		const external_ = (external / 1024 / 1024).toFixed(3);
 		const arrayBuffers_ = (arrayBuffers / 1024 / 1024).toFixed(3);
 		return {rss_, heapTotal_, heapUsed_, external_, arrayBuffers_};
+	}
+
+	public static get heapSpaceStatistics() {
+		const statistics = getHeapSpaceStatistics();
+		const val: HeapSpaceStatistics = {};
+		statistics.map(e => {
+			val[e.space_name] = {
+				Total: (e.space_size / 1024 / 1024).toFixed(3),
+				Used: (e.space_used_size / 1024 / 1024).toFixed(3)
+			};
+		});
+		return val;
 	}
 
 	/** OS */
