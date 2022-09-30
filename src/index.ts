@@ -133,7 +133,7 @@ function cmdHanders(this: Client, cmd: string, params: string) {
 		onlineActivity(bot);
 		adminsEvents(bot);
 		events(bot);
-		PluginInterface.scanPluginFile(bot);
+		PluginInterface.loadPlugin(bot);
 	});
 })();
 

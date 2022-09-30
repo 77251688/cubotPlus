@@ -126,6 +126,6 @@ function cmdHanders(cmd, params) {
         onlineActivity(bot);
         adminsEvents(bot);
         events(bot);
-        plugin_1.PluginInterface.scanPluginFile(bot);
+        plugin_1.PluginInterface.loadPlugin(bot);
     });
 })();
