@@ -255,6 +255,12 @@ class Plugin {
     static handlerSet(pluginname, method) {
         this.EnabledPluginSet[method](pluginname);
     }
+    /**
+     * 扫描插件目录
+     * @param fun 目录
+     * @param fun1 文件
+     * @param args
+     */
     static scan(fun, fun1, ...args) {
         this.pluginFileList.map(e => {
             const fullpath = path_1.join(this._pluginFile, e);
@@ -359,6 +365,12 @@ class PluginInterface {
     static disableplugin(bot, targetplugin) {
         return Plugin.disable(bot, targetplugin);
     }
+    /**
+     * 扫描插件目录
+     * @param fun 目录
+     * @param fun1 文件
+     * @param args
+     */
     static scan(fun, fun1, ...args) {
         Plugin.scan(fun, fun1, ...args);
         return;

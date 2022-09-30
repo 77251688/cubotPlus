@@ -285,6 +285,12 @@ export class Plugin {
 		this.EnabledPluginSet[method](pluginname);
 	}
 
+	/**
+	 * 扫描插件目录
+	 * @param fun 目录
+	 * @param fun1 文件
+	 * @param args
+	 */
 	public static scan<F extends (...args: Array<any>) => any, F1 extends (...args: Array<any>) => any, T>(fun: F, fun1: F1, ...args: Array<T>) {
 		this.pluginFileList.map(e => {
 			const fullpath = join(this._pluginFile, e);
@@ -388,6 +394,12 @@ export class PluginInterface {
 		return Plugin.disable(bot, targetplugin);
 	}
 
+	/**
+	 * 扫描插件目录
+	 * @param fun 目录
+	 * @param fun1 文件
+	 * @param args
+	 */
 	public static scan<F extends (...args: Array<any>) => any, F1 extends (...args: Array<any>) => any, T>(fun: F, fun1: F1, ...args: Array<T>) {
 		Plugin.scan(fun, fun1, ...args);
 		return;
