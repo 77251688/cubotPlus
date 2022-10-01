@@ -267,8 +267,8 @@ export class Plugin {
 		require(Plugincache.path);
 		const mod = require.cache[Plugincache.path];
 		const plugin: PluginINSTANCE = mod?.exports.plugin;
-		// if (typeof plugin.getdisablehookfun === "function")
-		// 	plugin.getdisablehookfun.call(bot);
+		if (typeof plugin.getdisablehookfun === "function")
+			plugin.getdisablehookfun.call(bot);
 		plugin.disable;
 		delete require.cache[Plugincache.path];
 		this.handlerMap(targetPlugin, Plugincache, "delete");
@@ -288,8 +288,8 @@ export class Plugin {
 		if (targetPlugin)
 			if (plugin.getname === targetPlugin) {
 				if (this.EnabledPluginSet.has(plugin.getname)) throw new PluginError(`ERR: 已载入${plugin.getname}`);
-				// if (typeof plugin.getenablehookfun === "function")
-				// 	plugin.getenablehookfun.call(bot);
+				if (typeof plugin.getenablehookfun === "function")
+					plugin.getenablehookfun.call(bot);
 				plugin.build(bot);
 				this.handlerMap(plugin.getname, {path: fullpath, pluginInstance: plugin}, "set");
 				this.handlerSet(plugin.getname, "add");
@@ -301,8 +301,8 @@ export class Plugin {
 			} else
 				return;
 		if (this.EnabledPluginList.includes(plugin.getname)) {
-			// if (typeof plugin.getenablehookfun === "function")
-			// 	plugin.getenablehookfun.call(bot);
+			if (typeof plugin.getenablehookfun === "function")
+				plugin.getenablehookfun.call(bot);
 			plugin.build(bot);
 			this.handlerMap(plugin.getname, {path: fullpath, pluginInstance: plugin}, "set");
 			this.handlerSet(plugin.getname, "add");
