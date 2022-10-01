@@ -36,10 +36,12 @@ export class PluginINSTANCE {
 	private cmd?: string[] | null;
 	private event!: Array<keyof EventMap>;
 	private permission?: keyof permission | Array<number | any>;
-	private fun!: (...args: any) => void;
+	// private fun!: (...args: any) => void;
 	private bot!: Client;
 	// 实验性多监听
 	private funArr: Array<(...args: any) => void> = [];
+	private _enablehookfun?: (...args: Array<any>) => void;
+	private _disablehookfun?: (...args: Array<any>) => void;
 
 	public name(namestr: string): this {
 		this._name = namestr;
@@ -123,8 +125,10 @@ export class PluginINSTANCE {
 	// **********************************************************//
 
 	// 实验性多监听
-	public command<T extends string, E extends Array<keyof EventMap>, P extends keyof permission>(cmd: T | null, event: E | string, permission?: P): this {
+	public command<T extends string, E extends Array<keyof EventMap>, P extends keyof permission>(cmd: T | null, event: E | string | null, permission?: P): this {
 		this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
+		if (event === null)
+			return this;
 		if (Array.isArray(event))
 			this.event = event;
 		else
@@ -198,12 +202,24 @@ export class PluginINSTANCE {
 
 	public build(bot: Client) {
 		this.bot = bot;
+		if (this.event === undefined || this.event === null) return;
 		this.event.map((e: any, index: number) => {
 			bot.on(e, this.funArr[index]);
 		});
 	}
 
+	public enablehook<T extends (...args: Array<any>) => void>(fun: T): this {
+		this._enablehookfun = fun;
+		return this;
+	}
+
+	public disablehook<T extends (...args: Array<any>) => void>(fun: T): this {
+		this._disablehookfun = fun;
+		return this;
+	}
+
 	public get disable(): void {
+		if (this.event === undefined || this.event === null) return;
 		this.event.map((e: any, index: number) => {
 			this.bot.off(e, this.funArr[index]);
 		});
@@ -217,13 +233,21 @@ export class PluginINSTANCE {
 	public get getdesc(): string {
 		return <string>this._desc;
 	}
+
+	public get getenablehookfun(): ((...args: any[]) => void) | undefined {
+		return this._enablehookfun;
+	}
+
+	public get getdisablehookfun(): ((...args: any[]) => void) | undefined {
+		return this._disablehookfun;
+	}
 }
 
 export class Plugin {
 	private static _pluginFile = join(__dirname, "../plugin");
-	private static config = config.returnconfig();
+	private static config: any;
 	private static pluginFileList = file.readdir(this._pluginFile);
-	private static EnabledPluginList = config.returnconfig().plugins;
+	private static EnabledPluginList: Array<string>;
 	private static pluginDirectoryList: Array<string>;
 	private static EnabledPluginMap: Map<string, plugincache> = new Map<string, plugincache>();
 	private static EnabledPluginSet: Set<string> = new Set();
@@ -232,12 +256,19 @@ export class Plugin {
 
 	// private static bot: Client;
 
+	public static loadPlugin(bot: Client) {
+		this.config = config.returnconfig();
+		this.EnabledPluginList = config.returnconfig().plugins;
+	}
+
 	public static disable(bot: Client, targetPlugin: string): string {
 		if (!this.EnabledPluginSet.has(targetPlugin)) throw new PluginError("ERR: 没有启用这个插件");
 		const Plugincache = this.EnabledPluginMap.get(targetPlugin)!;
 		require(Plugincache.path);
 		const mod = require.cache[Plugincache.path];
 		const plugin: PluginINSTANCE = mod?.exports.plugin;
+		// if (typeof plugin.getdisablehookfun === "function")
+		// 	plugin.getdisablehookfun.call(bot);
 		plugin.disable;
 		delete require.cache[Plugincache.path];
 		this.handlerMap(targetPlugin, Plugincache, "delete");
@@ -257,6 +288,8 @@ export class Plugin {
 		if (targetPlugin)
 			if (plugin.getname === targetPlugin) {
 				if (this.EnabledPluginSet.has(plugin.getname)) throw new PluginError(`ERR: 已载入${plugin.getname}`);
+				// if (typeof plugin.getenablehookfun === "function")
+				// 	plugin.getenablehookfun.call(bot);
 				plugin.build(bot);
 				this.handlerMap(plugin.getname, {path: fullpath, pluginInstance: plugin}, "set");
 				this.handlerSet(plugin.getname, "add");
@@ -268,6 +301,8 @@ export class Plugin {
 			} else
 				return;
 		if (this.EnabledPluginList.includes(plugin.getname)) {
+			// if (typeof plugin.getenablehookfun === "function")
+			// 	plugin.getenablehookfun.call(bot);
 			plugin.build(bot);
 			this.handlerMap(plugin.getname, {path: fullpath, pluginInstance: plugin}, "set");
 			this.handlerSet(plugin.getname, "add");
@@ -405,8 +440,14 @@ export class PluginInterface {
 		return;
 	}
 
-	public static scanPluginFile(bot: Client, targetPlugin?: string) {
-		return Plugin.scanPluginFile(bot, targetPlugin);
+	/**
+	 * 加载插件
+	 * @param bot
+	 */
+	public static loadPlugin(bot: Client): void {
+		Plugin.loadPlugin(bot);
+		Plugin.scanPluginFile(bot);
+		return;
 	}
 
 	public static get pluginList() {

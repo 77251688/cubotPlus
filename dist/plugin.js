@@ -19,10 +19,12 @@ class PluginINSTANCE {
     cmd;
     event;
     permission;
-    fun;
+    // private fun!: (...args: any) => void;
     bot;
     // 实验性多监听
     funArr = [];
+    _enablehookfun;
+    _disablehookfun;
     name(namestr) {
         this._name = namestr;
         return this;
@@ -102,6 +104,8 @@ class PluginINSTANCE {
     // 实验性多监听
     command(cmd, event, permission) {
         this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
+        if (event === null)
+            return this;
         if (Array.isArray(event))
             this.event = event;
         else
@@ -174,11 +178,23 @@ class PluginINSTANCE {
     }
     build(bot) {
         this.bot = bot;
+        if (this.event === undefined || this.event === null)
+            return;
         this.event.map((e, index) => {
             bot.on(e, this.funArr[index]);
         });
     }
+    enablehook(fun) {
+        this._enablehookfun = fun;
+        return this;
+    }
+    disablehook(fun) {
+        this._disablehookfun = fun;
+        return this;
+    }
     get disable() {
+        if (this.event === undefined || this.event === null)
+            return;
         this.event.map((e, index) => {
             this.bot.off(e, this.funArr[index]);
         });
@@ -190,19 +206,29 @@ class PluginINSTANCE {
     get getdesc() {
         return this._desc;
     }
+    get getenablehookfun() {
+        return this._enablehookfun;
+    }
+    get getdisablehookfun() {
+        return this._disablehookfun;
+    }
 }
 exports.PluginINSTANCE = PluginINSTANCE;
 class Plugin {
     static _pluginFile = path_1.join(__dirname, "../plugin");
-    static config = config_1.config.returnconfig();
+    static config;
     static pluginFileList = utils_1.file.readdir(this._pluginFile);
-    static EnabledPluginList = config_1.config.returnconfig().plugins;
+    static EnabledPluginList;
     static pluginDirectoryList;
     static EnabledPluginMap = new Map();
     static EnabledPluginSet = new Set();
     static startTime;
     static endTime;
     // private static bot: Client;
+    static loadPlugin(bot) {
+        this.config = config_1.config.returnconfig();
+        this.EnabledPluginList = config_1.config.returnconfig().plugins;
+    }
     static disable(bot, targetPlugin) {
         if (!this.EnabledPluginSet.has(targetPlugin))
             throw new PluginError("ERR: 没有启用这个插件");
@@ -210,6 +236,8 @@ class Plugin {
         require(Plugincache.path);
         const mod = require.cache[Plugincache.path];
         const plugin = mod?.exports.plugin;
+        // if (typeof plugin.getdisablehookfun === "function")
+        // 	plugin.getdisablehookfun.call(bot);
         plugin.disable;
         delete require.cache[Plugincache.path];
         this.handlerMap(targetPlugin, Plugincache, "delete");
@@ -229,6 +257,8 @@ class Plugin {
             if (plugin.getname === targetPlugin) {
                 if (this.EnabledPluginSet.has(plugin.getname))
                     throw new PluginError(`ERR: 已载入${plugin.getname}`);
+                // if (typeof plugin.getenablehookfun === "function")
+                // 	plugin.getenablehookfun.call(bot);
                 plugin.build(bot);
                 this.handlerMap(plugin.getname, { path: fullpath, pluginInstance: plugin }, "set");
                 this.handlerSet(plugin.getname, "add");
@@ -241,6 +271,8 @@ class Plugin {
             else
                 return;
         if (this.EnabledPluginList.includes(plugin.getname)) {
+            // if (typeof plugin.getenablehookfun === "function")
+            // 	plugin.getenablehookfun.call(bot);
             plugin.build(bot);
             this.handlerMap(plugin.getname, { path: fullpath, pluginInstance: plugin }, "set");
             this.handlerSet(plugin.getname, "add");
@@ -375,8 +407,14 @@ class PluginInterface {
         Plugin.scan(fun, fun1, ...args);
         return;
     }
-    static scanPluginFile(bot, targetPlugin) {
-        return Plugin.scanPluginFile(bot, targetPlugin);
+    /**
+     * 加载插件
+     * @param bot
+     */
+    static loadPlugin(bot) {
+        Plugin.loadPlugin(bot);
+        Plugin.scanPluginFile(bot);
+        return;
     }
     static get pluginList() {
         return Plugin.pluginList;
