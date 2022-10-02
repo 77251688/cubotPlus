@@ -33,8 +33,8 @@ export class PluginError extends Error {
 export class PluginINSTANCE {
 	private _name?: string;
 	private _desc?: string;
-	private cmd?: string[] | null;
-	private event!: Array<keyof EventMap>;
+	private _cmd?: string[] | null;
+	private _event!: Array<keyof EventMap>;
 	private permission?: keyof permission | Array<number | any>;
 	// private fun!: (...args: any) => void;
 	private bot!: Client;
@@ -126,20 +126,20 @@ export class PluginINSTANCE {
 
 	// 实验性多监听
 	public command<T extends string, E extends Array<keyof EventMap>, P extends keyof permission>(cmd: T | null, event: E | string | null, permission?: P): this {
-		this.cmd = cmd?.split(" ").filter(e => !e.includes("<"));
+		this._cmd = cmd?.split(" ").filter(e => !e.includes("<"));
 		if (event === null)
 			return this;
 		if (Array.isArray(event))
-			this.event = event;
+			this._event = event;
 		else
-			this.event = event.split(" ") as Array<keyof EventMap>;
+			this._event = event.split(" ") as Array<keyof EventMap>;
 		this.permission = permission;
 		return this;
 	}
 
 	public action<T extends Array<(...args: any) => void>>(...args: T): this {
 		args.map(fun => {
-			if (this.cmd) {
+			if (this._cmd) {
 				if (this.permission) {
 					if (this.permission === "master")
 						this.permission = Admin.getmasterArr;
@@ -149,10 +149,10 @@ export class PluginINSTANCE {
 						if (this.permission?.includes(e.user_id)) {
 							const msgArr = e.raw_message.trim().split(" ");
 							let trigger;
-							if (this.cmd?.includes(msgArr[0])) {
+							if (this._cmd?.includes(msgArr[0])) {
 								fun.call(this.bot, e, msgArr[0], msgArr[1]);
 								return;
-							} else if (this.cmd?.some(item => {
+							} else if (this._cmd?.some(item => {
 								trigger = item;
 								return e.raw_message.startsWith(item);
 							})) {
@@ -168,10 +168,10 @@ export class PluginINSTANCE {
 					// if (e.raw_message.split(" ")[0] === this.cmd || e.raw_message.startsWith(<string>this.cmd)) {
 					const msgArr = e.raw_message.trim().split(" ");
 					let trigger;
-					if (this.cmd?.includes(msgArr[0])) {
+					if (this._cmd?.includes(msgArr[0])) {
 						fun.call(this.bot, e, msgArr[0], msgArr[1]);
 						return;
-					} else if (this.cmd?.some(item => {
+					} else if (this._cmd?.some(item => {
 						trigger = item;
 						return e.raw_message.startsWith(item);
 					})) {
@@ -202,8 +202,8 @@ export class PluginINSTANCE {
 
 	public build(bot: Client) {
 		this.bot = bot;
-		if (this.event === undefined || this.event === null) return;
-		this.event.map((e: any, index: number) => {
+		if (this._event === undefined || this._event === null) return;
+		this._event.map((e: any, index: number) => {
 			bot.on(e, this.funArr[index]);
 		});
 	}
@@ -218,9 +218,13 @@ export class PluginINSTANCE {
 		return this;
 	}
 
+	public get getEvent(): Array<keyof EventMap> {
+		return this._event;
+	}
+
 	public get disable(): void {
-		if (this.event === undefined || this.event === null) return;
-		this.event.map((e: any, index: number) => {
+		if (this._event === undefined || this._event === null) return;
+		this._event.map((e: any, index: number) => {
 			this.bot.off(e, this.funArr[index]);
 		});
 		return;
@@ -232,6 +236,10 @@ export class PluginINSTANCE {
 
 	public get getdesc(): string {
 		return <string>this._desc;
+	}
+
+	public get getcmd(): string[] | null | undefined {
+		return this._cmd;
 	}
 
 	public get getenablehookfun(): ((...args: any[]) => void) | undefined {
@@ -247,7 +255,7 @@ export class Plugin {
 	private static _pluginFile = join(__dirname, "../plugin");
 	private static config: any;
 	private static pluginFileList = file.readdir(this._pluginFile);
-	private static EnabledPluginList: Array<string>;
+	private static _EnabledPluginList: Array<string>;
 	private static pluginDirectoryList: Array<string>;
 	private static EnabledPluginMap: Map<string, plugincache> = new Map<string, plugincache>();
 	private static EnabledPluginSet: Set<string> = new Set();
@@ -258,7 +266,7 @@ export class Plugin {
 
 	public static loadPlugin(bot: Client) {
 		this.config = config.returnconfig();
-		this.EnabledPluginList = config.returnconfig().plugins;
+		this._EnabledPluginList = config.returnconfig().plugins;
 	}
 
 	public static disable(bot: Client, targetPlugin: string): string {
@@ -300,7 +308,7 @@ export class Plugin {
 				throw new PluginError(`已载入 ${plugin.getname}`);
 			} else
 				return;
-		if (this.EnabledPluginList.includes(plugin.getname)) {
+		if (this._EnabledPluginList.includes(plugin.getname)) {
 			if (typeof plugin.getenablehookfun === "function")
 				plugin.getenablehookfun.call(bot);
 			plugin.build(bot);
@@ -366,6 +374,10 @@ export class Plugin {
 		return;
 	}
 
+	public static get EnabledPluginList(): Array<string> {
+		return this._EnabledPluginList;
+	}
+
 	public static get pluginFile(): string {
 		return this._pluginFile;
 	}
@@ -415,6 +427,10 @@ export class PluginInterface {
 		}
 	}
 
+	public static disableplugin(bot: Client, targetplugin: string) {
+		return Plugin.disable(bot, targetplugin);
+	}
+
 	public static reload(this: Client, targetplugin: string): string | void {
 		Plugin.disable(this, targetplugin);
 		try {
@@ -423,10 +439,6 @@ export class PluginInterface {
 			return err.message;
 		}
 		return;
-	}
-
-	public static disableplugin(bot: Client, targetplugin: string) {
-		return Plugin.disable(bot, targetplugin);
 	}
 
 	/**
@@ -448,6 +460,14 @@ export class PluginInterface {
 		Plugin.loadPlugin(bot);
 		Plugin.scanPluginFile(bot);
 		return;
+	}
+
+	public static get EnabledPluginList(): Array<string> {
+		return Plugin.EnabledPluginList;
+	}
+
+	public static get pluginFile(): string {
+		return Plugin.pluginFile;
 	}
 
 	public static get pluginList() {
