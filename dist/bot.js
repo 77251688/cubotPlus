@@ -23,7 +23,7 @@ class Initbot {
     static async init() {
         const list = config_1.config.readlist();
         /** include config.json? */
-        if (!(list.includes('config.json'))) {
+        if (!(list.includes("config.json"))) {
             config_1.config.create();
             config_1.config.rename();
             config_1.config.initwriteconfig();
@@ -35,7 +35,8 @@ class Initbot {
 /** login method class */
 class login {
     static loginmethod(bot) {
-        const { mode, password, verifymethod } = config_1.config.returnconfig();
+        const { mode, password: password_, verifymethod } = config_1.config.returnconfig();
+        const password = Buffer.from(password_, "base64").toString();
         /** qrcode login */
         if (mode === "qrcode") {
             bot.on("system.login.qrcode", function (e) {

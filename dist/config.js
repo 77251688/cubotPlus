@@ -92,7 +92,8 @@ class config {
                     config_.mode = "qrcode";
                 }
                 else {
-                    config_.password = password.trim();
+                    // config_.password = password.trim();
+                    config_.password = Buffer.from(password.trim(), "binary").toString("base64");
                     config_.mode = "password";
                 }
                 config_.platform = parseInt(platform);

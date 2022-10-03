@@ -1,6 +1,7 @@
-import {readFileSync, writeFileSync, readdirSync, renameSync} from "fs";
+import {readdirSync, readFileSync, renameSync, writeFileSync} from "fs";
 import {join} from "path";
 import inquirer from "inquirer";
+import {createHash} from "crypto";
 
 /**
  * @config
@@ -89,7 +90,8 @@ export class config {
 				if (loginmode === "扫码登录") {
 					config_.mode = "qrcode";
 				} else {
-					config_.password = password.trim();
+					// config_.password = password.trim();
+					config_.password = Buffer.from(password.trim(), "binary").toString("base64");
 					config_.mode = "password";
 				}
 				config_.platform = parseInt(platform);
