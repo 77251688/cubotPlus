@@ -258,7 +258,7 @@ export class Plugin {
 	private static _EnabledPluginList: Array<string>;
 	private static pluginDirectoryList: Array<string>;
 	private static EnabledPluginMap: Map<string, plugincache> = new Map<string, plugincache>();
-	private static EnabledPluginSet: Set<string> = new Set();
+	private static _EnabledPluginSet: Set<string> = new Set();
 	private static startTime: number;
 	private static endTime: number;
 
@@ -270,7 +270,7 @@ export class Plugin {
 	}
 
 	public static disable(bot: Client, targetPlugin: string): string {
-		if (!this.EnabledPluginSet.has(targetPlugin)) throw new PluginError("ERR: 没有启用这个插件");
+		if (!this._EnabledPluginSet.has(targetPlugin)) throw new PluginError("ERR: 没有启用这个插件");
 		const Plugincache = this.EnabledPluginMap.get(targetPlugin)!;
 		require(Plugincache.path);
 		const mod = require.cache[Plugincache.path];
@@ -281,7 +281,7 @@ export class Plugin {
 		delete require.cache[Plugincache.path];
 		this.handlerMap(targetPlugin, Plugincache, "delete");
 		this.handlerSet(targetPlugin, "delete");
-		this.config.plugins = Array.from(this.EnabledPluginSet);
+		this.config.plugins = Array.from(this._EnabledPluginSet);
 		file.writeFile(join(process.cwd(), "../config.json"), this.config);
 		bot.logger.warn(`已卸载${plugin.getname}`);
 		return `已卸载`;
@@ -295,13 +295,13 @@ export class Plugin {
 		if (!(plugin instanceof PluginINSTANCE)) return;
 		if (targetPlugin)
 			if (plugin.getname === targetPlugin) {
-				if (this.EnabledPluginSet.has(plugin.getname)) throw new PluginError(`ERR: 已载入${plugin.getname}`);
+				if (this._EnabledPluginSet.has(plugin.getname)) throw new PluginError(`ERR: 已载入${plugin.getname}`);
 				if (typeof plugin.getenablehookfun === "function")
 					plugin.getenablehookfun.call(bot);
 				plugin.build(bot);
 				this.handlerMap(plugin.getname, {path: fullpath, pluginInstance: plugin}, "set");
 				this.handlerSet(plugin.getname, "add");
-				this.config.plugins = Array.from(this.EnabledPluginSet);
+				this.config.plugins = Array.from(this._EnabledPluginSet);
 				file.writeFile(join(process.cwd(), "../config.json"), this.config);
 				this.endTime = +new Date();
 				bot.logger.warn(`已载入 ${plugin.getname} ${this.endTime - this.startTime}ms`);
@@ -325,7 +325,7 @@ export class Plugin {
 	}
 
 	private static handlerSet(pluginname: string, method: "add" | "delete") {
-		this.EnabledPluginSet[method](pluginname);
+		this._EnabledPluginSet[method](pluginname);
 	}
 
 	/**
@@ -374,8 +374,8 @@ export class Plugin {
 		return;
 	}
 
-	public static get EnabledPluginList(): Array<string> {
-		return this._EnabledPluginList;
+	public static get EnabledPluginSet(): Set<string> {
+		return this._EnabledPluginSet;
 	}
 
 	public static get pluginFile(): string {
@@ -395,7 +395,7 @@ export class Plugin {
 						const mod = require.cache[join(fullpath, E)];
 						const plugin: PluginINSTANCE = mod?.exports.plugin;
 						if (!(plugin instanceof PluginINSTANCE)) return;
-						if (this.EnabledPluginSet.has(plugin.getname))
+						if (this._EnabledPluginSet.has(plugin.getname))
 							pluginlist.push(`●${plugin.getname}\n`);
 						else
 							pluginlist.push(`○${plugin.getname}\n`);
@@ -407,7 +407,7 @@ export class Plugin {
 					const mod = require.cache[fullpath];
 					const plugin: PluginINSTANCE = mod?.exports.plugin;
 					if (!(plugin instanceof PluginINSTANCE)) return;
-					if (this.EnabledPluginSet.has(plugin.getname))
+					if (this._EnabledPluginSet.has(plugin.getname))
 						pluginlist.push(`●${plugin.getname}\n`);
 					else
 						pluginlist.push(`○${plugin.getname}\n`);
@@ -452,6 +452,10 @@ export class PluginInterface {
 		return;
 	}
 
+	public static get EnabledPluginSet(): Set<string> {
+		return Plugin.EnabledPluginSet;
+	}
+
 	/**
 	 * 加载插件
 	 * @param bot
@@ -460,10 +464,6 @@ export class PluginInterface {
 		Plugin.loadPlugin(bot);
 		Plugin.scanPluginFile(bot);
 		return;
-	}
-
-	public static get EnabledPluginList(): Array<string> {
-		return Plugin.EnabledPluginList;
 	}
 
 	public static get pluginFile(): string {

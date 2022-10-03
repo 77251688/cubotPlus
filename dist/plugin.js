@@ -227,7 +227,7 @@ class Plugin {
     static _EnabledPluginList;
     static pluginDirectoryList;
     static EnabledPluginMap = new Map();
-    static EnabledPluginSet = new Set();
+    static _EnabledPluginSet = new Set();
     static startTime;
     static endTime;
     // private static bot: Client;
@@ -236,7 +236,7 @@ class Plugin {
         this._EnabledPluginList = config_1.config.returnconfig().plugins;
     }
     static disable(bot, targetPlugin) {
-        if (!this.EnabledPluginSet.has(targetPlugin))
+        if (!this._EnabledPluginSet.has(targetPlugin))
             throw new PluginError("ERR: 没有启用这个插件");
         const Plugincache = this.EnabledPluginMap.get(targetPlugin);
         require(Plugincache.path);
@@ -248,7 +248,7 @@ class Plugin {
         delete require.cache[Plugincache.path];
         this.handlerMap(targetPlugin, Plugincache, "delete");
         this.handlerSet(targetPlugin, "delete");
-        this.config.plugins = Array.from(this.EnabledPluginSet);
+        this.config.plugins = Array.from(this._EnabledPluginSet);
         utils_1.file.writeFile(path_1.join(process.cwd(), "../config.json"), this.config);
         bot.logger.warn(`已卸载${plugin.getname}`);
         return `已卸载`;
@@ -261,14 +261,14 @@ class Plugin {
             return;
         if (targetPlugin)
             if (plugin.getname === targetPlugin) {
-                if (this.EnabledPluginSet.has(plugin.getname))
+                if (this._EnabledPluginSet.has(plugin.getname))
                     throw new PluginError(`ERR: 已载入${plugin.getname}`);
                 if (typeof plugin.getenablehookfun === "function")
                     plugin.getenablehookfun.call(bot);
                 plugin.build(bot);
                 this.handlerMap(plugin.getname, { path: fullpath, pluginInstance: plugin }, "set");
                 this.handlerSet(plugin.getname, "add");
-                this.config.plugins = Array.from(this.EnabledPluginSet);
+                this.config.plugins = Array.from(this._EnabledPluginSet);
                 utils_1.file.writeFile(path_1.join(process.cwd(), "../config.json"), this.config);
                 this.endTime = +new Date();
                 bot.logger.warn(`已载入 ${plugin.getname} ${this.endTime - this.startTime}ms`);
@@ -291,7 +291,7 @@ class Plugin {
         this.EnabledPluginMap[method](pluginname, cache);
     }
     static handlerSet(pluginname, method) {
-        this.EnabledPluginSet[method](pluginname);
+        this._EnabledPluginSet[method](pluginname);
     }
     /**
      * 扫描插件目录
@@ -339,8 +339,8 @@ class Plugin {
         });
         return;
     }
-    static get EnabledPluginList() {
-        return this._EnabledPluginList;
+    static get EnabledPluginSet() {
+        return this._EnabledPluginSet;
     }
     static get pluginFile() {
         return this._pluginFile;
@@ -359,7 +359,7 @@ class Plugin {
                         const plugin = mod?.exports.plugin;
                         if (!(plugin instanceof PluginINSTANCE))
                             return;
-                        if (this.EnabledPluginSet.has(plugin.getname))
+                        if (this._EnabledPluginSet.has(plugin.getname))
                             pluginlist.push(`●${plugin.getname}\n`);
                         else
                             pluginlist.push(`○${plugin.getname}\n`);
@@ -373,7 +373,7 @@ class Plugin {
                     const plugin = mod?.exports.plugin;
                     if (!(plugin instanceof PluginINSTANCE))
                         return;
-                    if (this.EnabledPluginSet.has(plugin.getname))
+                    if (this._EnabledPluginSet.has(plugin.getname))
                         pluginlist.push(`●${plugin.getname}\n`);
                     else
                         pluginlist.push(`○${plugin.getname}\n`);
@@ -416,6 +416,9 @@ class PluginInterface {
         Plugin.scan(fun, fun1, ...args);
         return;
     }
+    static get EnabledPluginSet() {
+        return Plugin.EnabledPluginSet;
+    }
     /**
      * 加载插件
      * @param bot
@@ -424,9 +427,6 @@ class PluginInterface {
         Plugin.loadPlugin(bot);
         Plugin.scanPluginFile(bot);
         return;
-    }
-    static get EnabledPluginList() {
-        return Plugin.EnabledPluginList;
     }
     static get pluginFile() {
         return Plugin.pluginFile;
