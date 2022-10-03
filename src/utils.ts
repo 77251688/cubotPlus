@@ -2,7 +2,7 @@ import * as fs from "fs";
 import {readdirSync} from "fs";
 import * as os from "os";
 import {config} from "./config";
-import {getHeapSpaceStatistics, HeapSpaceInfo} from "v8";
+import {getHeapSpaceStatistics} from "v8";
 
 interface HeapSpaceStatistics {
 	[key: string]: any;
