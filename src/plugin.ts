@@ -282,7 +282,7 @@ export class Plugin {
 		this.handlerMap(targetPlugin, Plugincache, "delete");
 		this.handlerSet(targetPlugin, "delete");
 		this.config.plugins = Array.from(this._EnabledPluginSet);
-		file.writeFile(join(process.cwd(), "../config.json"), this.config);
+		file.writeFile(join(__dirname, "../config.json"), this.config);
 		bot.logger.warn(`已卸载${plugin.getname}`);
 		return `已卸载`;
 
@@ -302,7 +302,7 @@ export class Plugin {
 				this.handlerMap(plugin.getname, {path: fullpath, pluginInstance: plugin}, "set");
 				this.handlerSet(plugin.getname, "add");
 				this.config.plugins = Array.from(this._EnabledPluginSet);
-				file.writeFile(join(process.cwd(), "../config.json"), this.config);
+				file.writeFile(join(__dirname, "../config.json"), this.config);
 				this.endTime = +new Date();
 				bot.logger.warn(`已载入 ${plugin.getname} ${this.endTime - this.startTime}ms`);
 				throw new PluginError(`已载入 ${plugin.getname}`);
