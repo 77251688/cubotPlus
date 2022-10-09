@@ -150,7 +150,7 @@ export class PluginINSTANCE {
 							const msgArr = e.raw_message.trim().split(" ");
 							let trigger;
 							if (this._cmd?.includes(msgArr[0])) {
-								fun.call(this.bot, e, msgArr[0], msgArr[1]);
+								fun.call(this.bot, e, msgArr[0], msgArr[1], msgArr.slice(2));
 								return;
 							} else if (this._cmd?.some(item => {
 								trigger = item;
@@ -169,7 +169,7 @@ export class PluginINSTANCE {
 					const msgArr = e.raw_message.trim().split(" ");
 					let trigger;
 					if (this._cmd?.includes(msgArr[0])) {
-						fun.call(this.bot, e, msgArr[0], msgArr[1]);
+						fun.call(this.bot, e, msgArr[0], msgArr[1], msgArr.slice(2));
 						return;
 					} else if (this._cmd?.some(item => {
 						trigger = item;
@@ -196,7 +196,6 @@ export class PluginINSTANCE {
 			}
 			this.funArr.push(fun);
 		});
-
 		return this;
 	}
 
@@ -334,7 +333,7 @@ export class Plugin {
 	 * @param fun1 文件
 	 * @param args
 	 */
-	public static scan<F extends (...args: Array<any>) => any, F1 extends (...args: Array<any>) => any, T>(fun: F, fun1: F1, ...args: Array<T>) {
+	public static scan<F extends (fullpath: string, E: string) => any, F1 extends (fullpath: string, E: string) => any, T>(fun: F, fun1: F1, ...args: Array<T>) {
 		this.pluginFileList.map(e => {
 			const fullpath = join(this._pluginFile, e);
 			const stat = statSync(fullpath);

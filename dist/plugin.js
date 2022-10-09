@@ -126,7 +126,7 @@ class PluginINSTANCE {
                             const msgArr = e.raw_message.trim().split(" ");
                             let trigger;
                             if (this._cmd?.includes(msgArr[0])) {
-                                fun.call(this.bot, e, msgArr[0], msgArr[1]);
+                                fun.call(this.bot, e, msgArr[0], msgArr[1], msgArr.slice(2));
                                 return;
                             }
                             else if (this._cmd?.some(item => {
@@ -146,7 +146,7 @@ class PluginINSTANCE {
                     const msgArr = e.raw_message.trim().split(" ");
                     let trigger;
                     if (this._cmd?.includes(msgArr[0])) {
-                        fun.call(this.bot, e, msgArr[0], msgArr[1]);
+                        fun.call(this.bot, e, msgArr[0], msgArr[1], msgArr.slice(2));
                         return;
                     }
                     else if (this._cmd?.some(item => {
