@@ -189,12 +189,15 @@ export class PluginINSTANCE {
 					this.permission = Admin.getadmins;
 				this.funArr.push((e: any) => {
 					if (this.permission?.includes(e.user_id)) {
-						fun(e);
+						fun.call(this.bot, e, e.raw_message);
 						return;
 					}
 				});
 			}
-			this.funArr.push(fun);
+			this.funArr.push((e: any) => {
+				fun.call(this.bot, e, e.raw_message);
+				return;
+			});
 		});
 		return this;
 	}
