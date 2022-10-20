@@ -433,10 +433,10 @@ export class PluginInterface {
 		return Plugin.disable(bot, targetplugin);
 	}
 
-	public static reload(this_: Client, targetplugin: string): string | void {
-		Plugin.disable(this_, targetplugin);
+	public static reload(this: Client, targetplugin: string): string | void {
+		Plugin.disable(this, targetplugin);
 		try {
-			Plugin.scanPluginFile(this_, targetplugin);
+			Plugin.scanPluginFile(this, targetplugin);
 		} catch (err: any) {
 			return err.message;
 		}

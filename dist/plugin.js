@@ -399,10 +399,10 @@ class PluginInterface {
     static disableplugin(bot, targetplugin) {
         return Plugin.disable(bot, targetplugin);
     }
-    static reload(this_, targetplugin) {
-        Plugin.disable(this_, targetplugin);
+    static reload(targetplugin) {
+        Plugin.disable(this, targetplugin);
         try {
-            Plugin.scanPluginFile(this_, targetplugin);
+            Plugin.scanPluginFile(this, targetplugin);
         }
         catch (err) {
             return err.message;
